@@ -15,7 +15,20 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
 
-    favoritos: Mapped[List['Favoritos']] = relationship(back_populates='user')
+    favoritos_personajes: Mapped[List['FavoritosPersonajes']] = relationship(
+        back_populates='user')
+    favoritos_vehiculos: Mapped[List['FavoritosVehiculos']] = relationship(
+        back_populates='user')
+    favoritos_lugares: Mapped[List['FavoritosLugares']
+                              ] = relationship(back_populates='user')
+    favoritos_criaturas: Mapped[List['FavoritosCriaturas']] = relationship(
+        back_populates='user')
+    favoritos_droides: Mapped[List['FavoritosDroides']
+                              ] = relationship(back_populates='user')
+    favoritos_organizaciones: Mapped[List['FavoritosOrganizaciones']] = relationship(
+        back_populates='user')
+    favoritos_especies: Mapped[List['FavoritosEspecies']] = relationship(
+        back_populates='user')
 
     def serialize(self):
         return {
@@ -23,177 +36,260 @@ class User(db.Model):
             "firstname": self.firstname,
             "lastname": self.lastname,
             "email": self.email,
-            # do not serialize the password, its a security breach
+            "favoritos": {
+                'personajes': [favorito.serialize() for favorito in self.favoritos_personajes],
+                'vehiculos': [favorito.serialize() for favorito in self.favoritos_vehiculos],
+                'lugares': [favorito.serialize() for favorito in self.favoritos_lugares],
+                'criaturas': [favorito.serialize() for favorito in self.favoritos_criaturas],
+                'droides': [favorito.serialize() for favorito in self.favoritos_droides],
+                'organizaciones': [favorito.serialize() for favorito in self.favoritos_organizaciones],
+                'especies': [favorito.serialize() for favorito in self.favoritos_especies]
+            }
         }
 
 
-class Character(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
+class Personaje(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     image: Mapped[str] = mapped_column(String(255))
 
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='character')
+    favoritos: Mapped[List['FavoritosPersonajes']] = relationship(
+        back_populates='personaje')
 
     def serialize(self):
         return {
-            '_id': self._id,
+            'id': self.id,
             'name': self.name,
             'description': self.description,
             'image': self.image,
         }
 
 
-class Vehicle(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
+class FavoritosPersonajes(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    personaje_id: Mapped[int] = mapped_column(
+        ForeignKey('personaje.id'), nullable=False)
 
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='vehicle')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Location(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
-
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='location')
+    user: Mapped['User'] = relationship(back_populates='favoritos_personajes')
+    personaje: Mapped['Personaje'] = relationship(back_populates='favoritos')
 
     def serialize(self):
         return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Creature(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
-
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='creature')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Droid(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
-
-    favoritos: Mapped[List['Favoritos']] = relationship(back_populates='droid')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Organization(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
-
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='organization')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Specie(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    image: Mapped[str] = mapped_column(String(255))
-
-    favoritos: Mapped[List['Favoritos']] = relationship(
-        back_populates='specie')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
-
-
-class Favoritos(db.Model):
-    _id: Mapped[int] = mapped_column(primary_key=True)
-
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("user.id"), nullable=False)
-    character_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('character._id'))
-    vehicle_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('vehicle._id'))
-    location_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('location._id'))
-    creature_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('creature._id'))
-    droid_id: Mapped[Optional[int]] = mapped_column(ForeignKey('droid._id'))
-    organization_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('organization._id'))
-    specie_id: Mapped[Optional[int]] = mapped_column(ForeignKey('specie._id'))
-
-    user: Mapped['User'] = relationship(back_populates='favoritos')
-    character: Mapped[Optional['Character']] = relationship(
-        back_populates='favoritos')
-    vehicle: Mapped[Optional['Vehicle']] = relationship(
-        back_populates='favoritos')
-    location: Mapped[Optional['Location']] = relationship(
-        back_populates='favoritos')
-    creature: Mapped[Optional['Creature']] = relationship(
-        back_populates='favoritos')
-    droid: Mapped[Optional['Droid']] = relationship(back_populates='favoritos')
-    organization: Mapped[Optional['Organization']
-                         ] = relationship(back_populates='favoritos')
-    specie: Mapped[Optional['Specie']] = relationship(
-        back_populates='favoritos')
-
-    def serialize(self):
-        return {
-            '_id': self._id,
+            'id': self.id,
             'user_id': self.user_id,
-            'character_id': self.character_id,
-            'vehicle_id': self.vehicle_id,
-            'location_id': self.location_id,
-            'creature_id': self.creature_id,
-            'droid_id': self.droid_id,
-            'organization_id': self.organization_id,
-            'specie_id': self.specie_id,
+            'personaje_id': self.personaje_id
+        }
+
+
+class Vehiculo(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosVehiculos']] = relationship(
+        back_populates='vehiculo')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosVehiculos(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    vehiculo_id: Mapped[int] = mapped_column(
+        ForeignKey('vehiculo.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(back_populates='favoritos_vehiculos')
+    vehiculo: Mapped['Vehiculo'] = relationship(back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'vehiculo_id': self.vehiculo_id
+        }
+
+
+class Lugar(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosLugares']] = relationship(
+        back_populates='lugar')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosLugares(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    lugar_id: Mapped[int] = mapped_column(
+        ForeignKey('lugar.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(back_populates='favoritos_lugares')
+    lugar: Mapped['Lugar'] = relationship(back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'lugar_id': self.lugar_id
+        }
+
+
+class Criatura(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosCriaturas']] = relationship(
+        back_populates='criatura')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosCriaturas(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    criatura_id: Mapped[int] = mapped_column(
+        ForeignKey('criatura.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(back_populates='favoritos_criaturas')
+    criatura: Mapped['Criatura'] = relationship(back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'criatura_id': self.criatura_id
+        }
+
+
+class Droide(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosDroides']
+                      ] = relationship(back_populates='droide')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosDroides(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    droide_id: Mapped[int] = mapped_column(
+        ForeignKey('droide.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(back_populates='favoritos_droides')
+    droide: Mapped['Droide'] = relationship(back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'droide_id': self.droide_id
+        }
+
+
+class Organizacion(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosOrganizaciones']] = relationship(
+        back_populates='organizacion')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosOrganizaciones(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    organizacion_id: Mapped[int] = mapped_column(
+        ForeignKey('organizacion.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(
+        back_populates='favoritos_organizaciones')
+    organizacion: Mapped['Organizacion'] = relationship(
+        back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'organizacion_id': self.organizacion_id
+        }
+
+
+class Especie(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    image: Mapped[str] = mapped_column(String(255))
+
+    favoritos: Mapped[List['FavoritosEspecies']] = relationship(
+        back_populates='especie')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+
+class FavoritosEspecies(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    especie_id: Mapped[int] = mapped_column(
+        ForeignKey('especie.id'), nullable=False)
+
+    user: Mapped['User'] = relationship(back_populates='favoritos_especies')
+    especie: Mapped['Especie'] = relationship(back_populates='favoritos')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'especie_id': self.especie_id
         }
